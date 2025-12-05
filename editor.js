@@ -1,204 +1,204 @@
-﻿
-// COMMENT FILE            : editor.js
-// COMMENT PROJECT         : PROG2001 - Assignment 05 Text Editor
-// COMMENT PROGRAMMER      : Zemmat Hagos, Najaf Ali
-// COMMENT FIRST VERSION   : 2025-12-05
-// COMMENT DESCRIPTION     :
-// COMMENT   This page handles the client-side JavaScript for the
-// COMMENT   Text Editor application through ajax requests
+﻿/*
+* FILE          : editor.js
+* PROJECT       : PROG2001 - Assignment 05 Text Editor
+* PROGRAMMER    : Zemmat Hagos, Najaf Ali
+* FIRST VERSION : 2025-12-05
+* DESCRIPTION   : 
+*      This JavaScript file provides client-side functionality for the Text Editor
+*      application. It handles AJAX requests for file operations including loading
+*      file lists, opening files, and saving files. The script uses jQuery for
+*      DOM manipulation and asynchronous server communication.
+*/
 
-// global variables
-var jQueryXMLHttpRequest; // this will hold the AJAX request information
-var selectedFileName; // and this will store the selected file name
+// Global variables to maintain state across function calls
+var jQueryXMLHttpRequest;  // Stores the current AJAX request object
+var selectedFileName;      // Tracks the currently selected filename
 
-
-// COMMENT FUNCTION     : Document Ready Handler
-// COMMENT DESCRIPTION  :
-// COMMENT   when the webpage has fully loaded. It initializes the
-// COMMENT   dropdown list of files
-
+//
+// FUNCTION      : document.ready Handler
+// DESCRIPTION   : Initializes the application when the DOM is fully loaded.
+//                 Sets up event handlers and loads initial file list.
+// PARAMETERS    : None
+// RETURNS       : None
+//
 $(document).ready(function () {
-    checkFileList(); // this will load the available file list
+    // Load the list of available files on startup
+    checkFileList();
 
-    // this will be the click handlers
+    // Attach click event handlers to UI buttons
     $("#btnOpen").click(openTheFile);
     $("#btnSave").click(saveTheFile);
 });
 
-// COMMENT FUNCTION: checkFileList
-// COMMENT DESCRIPTION:
-// Calls the server-side GetFileList() to retrieve a list
-// of all files stored in the MyFiles directory.
-// COMMENT PARAMETERS:
-// None
-// COMMENT RETURNS      :
-// void : Updates the UI with a file list or an error message.
-function checkFileList()
-{
-    // AJAX request to read the file
+//
+// FUNCTION      : checkFileList
+// DESCRIPTION   : Retrieves the list of files from the server-side GetFileList()
+//                 method and populates the dropdown menu with available files.
+// PARAMETERS    : None
+// RETURNS       : void - Updates the UI dropdown with file list or error message
+//
+function checkFileList() {
+    // AJAX request to retrieve file list from server
     jQueryXMLHttpRequest = $.ajax({
-
         type: "POST",
         url: "startPage.aspx/GetFileList",
-        data: "{}", // no paramters required
+        data: "{}",  // No parameters required for this request
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function (checkData) {
+            // Ensure response contains valid data
+            if (checkData != null && checkData.d != null) {
+                var checkResponse = JSON.parse(checkData.d);  // Parse JSON response
 
-            // Ensure response contains data
-            if (checkData != null && checkData.d != null)
-            {
-                var checkResponse = JSON.parse(checkData.d); // this will Parse JSON string returned from the server side
-
-                //used if statement to check if the server is sucessfull
-                if (checkResponse.status === "Success")
-                {   
-                    // this will clear dropdown and insert default option
+                // Check if server operation was successful
+                if (checkResponse.status === "Success") {
+                    // Clear dropdown and insert default option
                     $("#checkFiles").empty();
                     $("#checkFiles").append('<option value="">-- Choose a file --</option>');
 
-                    var lookFiles = checkResponse.description; // store list of the filenames
+                    var lookFiles = checkResponse.description;  // Array of filenames
 
-                    // loop to find the dropdown with filenames
-                    for (var checkFiles = 0; checkFiles < lookFiles.length; checkFiles++)
-                    {
-                        $("#checkFiles").append('<option value="' + lookFiles[checkFiles] + '">' + lookFiles[checkFiles] + '</option>');
+                    // Populate dropdown with each filename
+                    for (var checkFiles = 0; checkFiles < lookFiles.length; checkFiles++) {
+                        $("#checkFiles").append(
+                            '<option value="' + lookFiles[checkFiles] + '">' +
+                            lookFiles[checkFiles] + '</option>'
+                        );
                     }
 
-                    document.getElementById("statusMessage").innerHTML = "File list loaded"; // update the message
+                    // Update status message
+                    document.getElementById("statusMessage").innerHTML = "File list loaded";
                 }
-
             }
         },
 
-        //this will call a fail functions
+        //
+        // FUNCTION      : AJAX Fail Handler
+        // DESCRIPTION   : Handles failed AJAX requests for file list retrieval
+        // PARAMETERS    : None
+        // RETURNS       : None - Updates UI with error message
+        //
         fail: function () {
             document.getElementById("statusMessage").innerHTML = "The call to the Web failed!";
         }
-
-         
     });
-    
-
 }
 
-// COMMENT FUNCTION: openTheFile
-// COMMENT DESCRIPTION  :
-// Sends the selected filename to the GetFileContents to retrieve a list
-// of all files stored in the MyFiles directory.
-// COMMENT PARAMETERS:
-// None
-// COMMENT RETURNS:
-// void : 
+//
+// FUNCTION      : openTheFile
+// DESCRIPTION   : Opens the selected file by sending the filename to the server-side
+//                 GetFileContents() method and displays the contents in the text area.
+// PARAMETERS    : None
+// RETURNS       : void - Updates text area with file contents or displays error
+//
 function openTheFile() {
-
     // Get selected file from dropdown
     selectedFileName = $("#checkFiles").val();
 
-    // This will ensure a file was selected
-    if (!selectedFileName)
-    {
+    // Validate that a file was selected
+    if (!selectedFileName) {
         document.getElementById("statusMessage").innerHTML = "Select a file!!";
         return;
     }
 
-    // Create JSON object to send to server
+    // Create JSON object with filename for server request
     var jsonData = { fileName: selectedFileName };
     var jsonString = JSON.stringify(jsonData);
 
-    // AJAX request to read the file
+    // AJAX request to retrieve file contents
     jQueryXMLHttpRequest = $.ajax({
-
         type: "POST",
         url: "startPage.aspx/GetFileContents",
         data: jsonString,
         contentType: "application/json; charset=utf-8",
         dataType: "json",
-
-        //
-        success: function (fileData)
-        {
-            // Ensure response contains data
-            if (fileData != null && fileData.d != null)
-            {
-
+        success: function (fileData) {
+            // Ensure response contains valid data
+            if (fileData != null && fileData.d != null) {
                 var checkResponse = JSON.parse(fileData.d);
 
-                document.getElementById("textContentArea").value = checkResponse.contents; // Display file content in text area
+                // Display file content in text area
+                document.getElementById("textContentArea").value = checkResponse.contents;
 
+                // Update status message
                 document.getElementById("statusMessage").innerHTML = "File is opened";
             }
         },
 
-        // once again check if it will fail
-        fail: function ()
-        {
+        //
+        // FUNCTION      : AJAX Fail Handler
+        // DESCRIPTION   : Handles failed AJAX requests for file opening
+        // PARAMETERS    : None
+        // RETURNS       : None - Updates UI with error message
+        //
+        fail: function () {
             document.getElementById("statusMessage").innerHTML = "The call to the Web failed!";
         }
-
-
-    
     });
 }
 
-// COMMENT FUNCTION     : saveTheFile
-// COMMENT DESCRIPTION  :
-// COMMENT   Saves text from the editor back into a file on the server.
-// COMMENT  
-// COMMENT PARAMETERS   : None
-// COMMENT RETURNS      : void : 
-function saveTheFile()
-{
+//
+// FUNCTION      : saveTheFile
+// DESCRIPTION   : Saves text from the editor to a file on the server. If a new
+//                 filename is provided, creates a new file; otherwise overwrites
+//                 the currently selected file.
+// PARAMETERS    : None
+// RETURNS       : void - Updates status message and refreshes file list if needed
+//
+function saveTheFile() {
+    // Get text content from editor
+    var fileStuff = document.getElementById("textContentArea").value;
 
-    var fileStuff = document.getElementById("textContentArea").value; // get the text file from the editor
+    // Get new filename from input field (if provided)
+    var newFile = document.getElementById("txtSave").value.trim();
 
-    var newFile = document.getElementById("txtSave").value.trim(); // check if the user typed a new filename
+    // Determine final filename (new name or existing selected name)
+    var finalName = (newFile !== "") ? newFile : selectedFileName;
 
-    var finalName = (newFile !== "") ? newFile : selectedFileName; // decide final filename if it exists
-
-    //Ensure a filename exists
-    if (!finalName)
-    {
+    // Validate that a filename exists
+    if (!finalName) {
         document.getElementById("statusMessage").innerHTML = "Please select a file";
-
         return;
     }
 
-    // Package filename + content in JSON format
-    var jsonData = { fileName: finalName, getContents: fileStuff }; 
+    // Package filename and content in JSON format for server
+    var jsonData = {
+        fileName: finalName,
+        getContents: fileStuff
+    };
     var jsonString = JSON.stringify(jsonData);
 
-    // then use AJAX request to save a file
+    // AJAX request to save file to server
     jQueryXMLHttpRequest = $.ajax({
-
         type: "POST",
         url: "startPage.aspx/SaveTheFile",
         data: jsonString,
         contentType: "application/json; charset=utf-8",
         dataType: "json",
-
-        success: function (checkData)
-        {
+        success: function (checkData) {
             if (checkData != null && checkData.d != null) {
-
                 var checkResponse = JSON.parse(checkData.d);
 
-                document.getElementById("statusMessage").innerHTML = checkResponse.description; // Display message from server
+                // Display server response message
+                document.getElementById("statusMessage").innerHTML = checkResponse.description;
 
-                // if there is a new file this will refresh the dropdown
-                if (newFile !== "")
-                {
-                    selectedFileName = finalName;
-                    document.getElementById("txtSave").value = "";
-                    checkFileList();
+                // If saving as a new file, refresh the dropdown list
+                if (newFile !== "") {
+                    selectedFileName = finalName;  // Update selected file reference
+                    document.getElementById("txtSave").value = "";  // Clear new filename input
+                    checkFileList();  // Refresh file list
                 }
             }
         },
 
-        fail: function ()
-        {
+        //
+        // FUNCTION      : AJAX Fail Handler
+        // DESCRIPTION   : Handles failed AJAX requests for file saving
+        // PARAMETERS    : None
+        // RETURNS       : None - Updates UI with error message
+        //
+        fail: function () {
             document.getElementById("statusMessage").innerHTML = "ERROR Saving File failed!";
         }
-
     });
 }

@@ -1,192 +1,219 @@
 ﻿/*
- * FILE:             StartName.aspx.cs
- * PROJECT:          PROG2001-Assignement 05 Text Editior
- * PROGRAMMER:       Zemmat Hagos, Najaf Ali
- * FIRST VERSION:    2025-12-05
- * DESCRIPTION:      provides the webmethods and allows the client to list save and read file contents
- * 
- *                   
+ * FILE          : StartName.aspx.cs
+ * PROJECT       : PROG2001 - Assignment 05 Text Editor
+ * PROGRAMMER    : Zemmat Hagos, Najaf Ali
+ * FIRST VERSION : 2025-12-05
+ * DESCRIPTION   : 
+ *      This code-behind file provides server-side WebMethods for the Text Editor
+ *      application. It handles file operations including listing files in the
+ *      MyFiles directory, reading file contents, and saving file changes. All
+ *      methods use JSON serialization for client-server communication.
  */
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
 using System.IO;
+using System.Web;
 using System.Web.Services;
-using System.Diagnostics;
 using Newtonsoft.Json;
 
 namespace SEANTextEditor
 {
     public partial class startPage : System.Web.UI.Page
     {
+        //
+        // METHOD      : Page_Load
+        // DESCRIPTION : Standard Page_Load event handler (currently unused)
+        // PARAMETERS  :
+        //      object sender    : The source of the event
+        //      EventArgs e      : An object that contains no event data
+        // RETURNS     : None
+        //
         protected void Page_Load(object sender, EventArgs e)
         {
-
+            // Page load event handler - left empty as no initialization required
         }
 
-
+        //
+        // METHOD      : GetFileList
+        // DESCRIPTION : WebMethod that retrieves a list of all files in the MyFiles
+        //               directory and returns them as JSON for client-side display
+        // PARAMETERS  : None
+        // RETURNS     : string - JSON formatted response with status and file list
+        //
         [WebMethod]
-        /// <summary>
-        /// this will check the list
-        /// </summary>
-        /// <returns></returns>
         public static string GetFileList()
         {
-            // declare variables to hold and return data and status information
-            string returnTheData;
-            string fileStatus;
-            string fileContents;
-            
-            // used try catch block to check any exceptions
+            string returnTheData;  // JSON string to return to client
+            string fileStatus;     // Operation status (Success/Failure/Exception)
+            string fileContents;   // Description or file contents
 
             try
             {
-                string folderPath = HttpContext.Current.Server.MapPath("~/MyFiles"); // this will build the complete the file path
+                // Get physical path to MyFiles directory
+                string folderPath = HttpContext.Current.Server.MapPath("~/MyFiles");
 
-                // created if directory to see if the directory exists
+                // Check if directory exists
                 if (Directory.Exists(folderPath))
                 {
-                    string[] checkFile = Directory.GetFiles(folderPath); // this will get every file path inside the folder
+                    // Get all file paths in directory
+                    string[] checkFile = Directory.GetFiles(folderPath);
 
-                    List<string> fileNames = new List<string>(); // made a list to store only the file names
+                    // Create list to store only filenames (without path)
+                    List<string> fileNames = new List<string>();
 
-                    // loop thriugh each file thats found
-                    foreach(string file in checkFile)
+                    // Extract filename from each full path
+                    foreach (string file in checkFile)
                     {
-                        fileNames.Add(Path.GetFileName(file)); // extract and remove the folder path
+                        fileNames.Add(Path.GetFileName(file));
                     }
 
-                    fileStatus = "Success"; // display that the files have been sucessfully retrieved
+                    fileStatus = "Success";  // Operation successful
 
-                    returnTheData = JsonConvert.SerializeObject(new { status = fileStatus, description = fileNames }); // convert into JSON for the browser
+                    // Serialize response to JSON format
+                    returnTheData = JsonConvert.SerializeObject(new
+                    {
+                        status = fileStatus,
+                        description = fileNames
+                    });
 
                     return returnTheData;
                 }
-                
-                // else when the directory wasn't found
                 else
                 {
+                    // Directory not found
                     fileStatus = "Failure";
-                    fileContents = "the directory doesn't exist";
-
+                    fileContents = "The directory doesn't exist";
                 }
             }
-
-            // make sure you catch any unexpected errors
-            catch (Exception e)
+            catch (Exception ex)
             {
-                
+                // Handle unexpected exceptions
                 fileStatus = "Exception";
-                fileContents = "ERROR: " + e.ToString();
+                fileContents = "ERROR: " + ex.ToString();
             }
 
-            returnTheData = JsonConvert.SerializeObject(new { status = fileStatus, description = fileContents });
+            // Return error response
+            returnTheData = JsonConvert.SerializeObject(new
+            {
+                status = fileStatus,
+                description = fileContents
+            });
 
             return returnTheData;
-
-
         }
 
+        //
+        // METHOD      : GetFileContents
+        // DESCRIPTION : WebMethod that reads the contents of a specified file
+        //               from the MyFiles directory and returns it as JSON
+        // PARAMETERS  :
+        //      string fileName  : Name of the file to read
+        // RETURNS     : string  - JSON formatted response with status and file contents
+        //
         [WebMethod]
-
-        /// <summary>
-        /// this will read the contents of a selected file
-        /// </summary>
-        /// <returns></returns>
         public static string GetFileContents(string fileName)
         {
-            // declare variables to hold and return data and status information
-            string returnTheData;
-            string fileStatus;
-            string fileContents;
+            string returnTheData;  // JSON string to return to client
+            string fileStatus;     // Operation status (Success/Failure/Exception)
+            string fileContents;   // File contents or error description
 
-
-            // used try catch block to check any exceptions
             try
             {
+                // Get physical path to MyFiles directory
+                string folderPath = HttpContext.Current.Server.MapPath("~/MyFiles");
 
-                string folderPath = HttpContext.Current.Server.MapPath("~/MyFiles"); // this will get the physical path of the folders containing the files
-                
-                string filePath = folderPath + "\\" + fileName; // this will build the complete the file path
+                // Build complete file path
+                string filePath = Path.Combine(folderPath, fileName);
 
-                // check if the file exists before it trys to read it
+                // Check if file exists before reading
                 if (File.Exists(filePath))
                 {
+                    // Read entire file contents
+                    fileContents = File.ReadAllText(filePath);
+                    fileStatus = "Success";  // Operation successful
 
-                    fileContents = File.ReadAllText(filePath); // this will read the entire file
-                    fileStatus = "Success";
-
-                    returnTheData = JsonConvert.SerializeObject(new { status = fileStatus, contents = fileContents });
+                    // Serialize response to JSON format
+                    returnTheData = JsonConvert.SerializeObject(new
+                    {
+                        status = fileStatus,
+                        contents = fileContents
+                    });
 
                     return returnTheData;
                 }
-
                 else
                 {
+                    // File not found
                     fileStatus = "Failure";
                     fileContents = "File doesn't exist";
-
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-
+                // Handle unexpected exceptions
                 fileStatus = "Exception";
-                fileContents = "ERROR: " + e.ToString();
+                fileContents = "ERROR: " + ex.ToString();
             }
 
-            returnTheData = JsonConvert.SerializeObject(new { status = fileStatus, description = fileContents });
+            // Return error response
+            returnTheData = JsonConvert.SerializeObject(new
+            {
+                status = fileStatus,
+                description = fileContents
+            });
 
             return returnTheData;
-        
         }
 
+        //
+        // METHOD      : SaveTheFile
+        // DESCRIPTION : WebMethod that saves content to a file in the MyFiles
+        //               directory. Creates new file if it doesn't exist, 
+        //               overwrites if it does.
+        // PARAMETERS  :
+        //      string fileName    : Name of the file to save
+        //      string getContents : Content to write to the file
+        // RETURNS     : string    - JSON formatted response with status message
+        //
         [WebMethod]
-
-        /// <summary>
-        /// this will save the file when selected
-        /// </summary>
-        /// <returns></returns>
-        public static  string SaveTheFile(string fileName, string getContents)
+        public static string SaveTheFile(string fileName, string getContents)
         {
-            // declare variables to hold and return data and status information
-            string returnTheData;
-            string fileStatus;
-            string fileContents;
-            string filePath;
-            string folderPath;
+            string returnTheData;  // JSON string to return to client
+            string fileStatus;     // Operation status (Success/Exception)
+            string fileContents;   // Success/error message
+            string filePath;       // Complete path to file
+            string folderPath;     // Path to MyFiles directory
 
-            // used try catch block to check any exceptions
             try
             {
-                folderPath = HttpContext.Current.Server.MapPath("~/MyFiles"); // this will get the physical path of the folders containing the files
-               
-                filePath = folderPath + "\\" + fileName; // this will build the complete the file path
-                
-                File.WriteAllText(filePath, getContents); // this will write all the text content to the file
-                
-                fileStatus = "Success"; // set the staus to show its sucessful
+                // Get physical path to MyFiles directory
+                folderPath = HttpContext.Current.Server.MapPath("~/MyFiles");
 
-                fileContents = "File saved successfully"; // and for the file to be saved sucessfully
+                // Build complete file path
+                filePath = Path.Combine(folderPath, fileName);
 
-               
+                // Write all text content to file (creates new or overwrites existing)
+                File.WriteAllText(filePath, getContents);
+
+                fileStatus = "Success";  // Operation successful
+                fileContents = "File saved successfully";
             }
-
-            // this will block to handle any exceptions
-            catch (Exception e)
+            catch (Exception ex)
             {
-                // 
+                // Handle write exceptions
                 fileStatus = "Exception";
-                fileContents = "ERROR: " + e.ToString();
+                fileContents = "ERROR: " + ex.ToString();
             }
 
-            returnTheData = JsonConvert.SerializeObject(new { status = fileStatus, description = fileContents }); // used an anoymous object with status and error message to JSON
+            // Serialize response to JSON format
+            returnTheData = JsonConvert.SerializeObject(new
+            {
+                status = fileStatus,
+                description = fileContents
+            });
 
             return returnTheData;
-
         }
     }
-    }
+}

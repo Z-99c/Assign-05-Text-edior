@@ -1,10 +1,20 @@
 ﻿<!DOCTYPE html>
 <html>
+<!-- 
+    FILE: testing.txt
+    PROJECT: PROG2001 - Assignment 05 Text Editor
+    PROGRAMMER: Zemmat Hagos, Najaf Ali
+    DATE: 2025-12-05
+    DESCRIPTION: 
+        Sample HTML file for testing the Text Editor application.
+        Contains a simple HTML structure with a warning message.
+-->
 <head>
     <meta charset="utf-8" />
-    <title></title>
+    <title>Test Warning!</title>
 </head>
 <body>
-HEY THERE YOU HAVE TO PICK THE GAME
+    <!-- Main message -->
+    HELLOOOO—SELECT A GAME OR I’M SUMMONING THE CHAOS GREMLINS!
 </body>
 </html>

@@ -1,10 +1,20 @@
 <!DOCTYPE html>
 <html>
+<!-- 
+    FILE: nerd.txt
+    PROJECT: PROG2001 - Assignment 05 Text Editor
+    PROGRAMMER: Zemmat Hagos, Najaf Ali
+    DATE: 2025-12-05
+    DESCRIPTION: 
+        Sample HTML file for testing the Text Editor application.
+        Contains a simple HTML structure with a warning message.
+-->
 <head>
     <meta charset="utf-8" />
-    <title></title>
+    <title>Nerd Warning!</title>
 </head>
 <body>
-GET OUT YOU NERD
+    <!-- Main message -->
+    Be gone, oh mighty overlord of nerdkind!
 </body>
 </html>
